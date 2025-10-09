@@ -58,6 +58,18 @@ $end = $offset + $data->num_rows;
 ?>
 
 <div class="container py-4">
+     <?php if (isset($_GET['msg'])): ?>
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <?php
+    switch($_GET['msg']) {
+      case 'added': echo 'Data berhasil ditambahkan!'; break;
+      case 'updated': echo 'Data berhasil diperbarui!'; break;
+      case 'deleted': echo 'Data berhasil dihapus!'; break;
+    }
+    ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<?php endif; ?>
   <div class="card">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
       <h3 class="m-0">Data User</h3>
