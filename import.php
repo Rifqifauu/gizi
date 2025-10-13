@@ -1,50 +1,81 @@
 <?php
 session_start();
 
-if (isset($_SESSION['import_success']) || isset($_SESSION['import_fail'])) {
-    $success = $_SESSION['import_success'] ?? 0;
-    $fail = $_SESSION['import_fail'] ?? 0;
-    $errors = $_SESSION['import_errors'] ?? [];
-    
-    if ($success > 0) {
-        echo "<div class='alert alert-success alert-dismissible fade show' role='alert'>";
-        echo "<strong>✓ Berhasil!</strong> {$success} data berhasil diimport.";
-        echo "<button type='button' class='btn-close' data-bs-dismiss='alert'></button>";
-        echo "</div>";
+include __DIR__ . '/script/SimpleXLSX.php';
+include __DIR__ . '/koneksi.php';
+
+// --- Fungsi untuk menghitung Z-Score IMT dari WHO reference ---
+function getZScoreIMT($koneksi, $sex, $umur_bulan, $imt) {
+    if (empty($sex) || empty($umur_bulan) || $imt === null || $imt === 0) {
+        return null;
     }
     
-    if ($fail > 0) {
-        echo "<div class='alert alert-warning alert-dismissible fade show' role='alert'>";
-        echo "<strong>⚠ Peringatan!</strong> {$fail} data gagal diimport.<br>";
+    $stmt = $koneksi->prepare("
+        SELECT median, sd 
+        FROM who_imt_ref 
+        WHERE sex = ? AND umur_bln = ? 
+        LIMIT 1
+    ");
+    
+    if (!$stmt) {
+        echo "[ERROR] Prepare query: " . $koneksi->error . "<br>";
+        return null;
+    }
+    
+    $stmt->bind_param("si", $sex, $umur_bulan);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($row = $result->fetch_assoc()) {
+        $median = $row['median'];
+        $sd = $row['sd'];
         
-        if (!empty($errors)) {
-            echo "<hr class='my-2'><small><strong>Detail Error:</strong><br>";
-            echo "<ul class='mb-0 ps-3'>";
-            foreach ($errors as $error) {
-                echo "<li>" . htmlspecialchars($error) . "</li>";
-            }
-            echo "</ul></small>";
+        if ($sd != 0) {
+            $z = ($imt - $median) / $sd;
+            return round($z, 2);
         }
-        
-        echo "<button type='button' class='btn-close' data-bs-dismiss='alert'></button>";
-        echo "</div>";
     }
-    
-    unset($_SESSION['import_success'], $_SESSION['import_fail'], $_SESSION['import_errors']);
+
+    return null;
 }
 
-include __DIR__ . '/script/SimpleXLSX.php';
-include __DIR__ . '/koneksi.php'; 
+// --- Fungsi untuk menentukan status gizi dari z-score dan kriteria ---
+function getStatus($koneksi, $id_kriteria, $nilai) {
+    if ($nilai === null) {
+        return 'Tidak Diketahui';
+    }
+    
+    $stmt = $koneksi->prepare("
+        SELECT nama FROM sub_kriteria 
+        WHERE id_kriteria=? 
+        AND (
+            (batas_bawah IS NULL AND batas_atas IS NULL) 
+            OR (batas_bawah IS NULL AND ? <= batas_atas) 
+            OR (batas_atas IS NULL AND ? >= batas_bawah)
+            OR (batas_bawah IS NOT NULL AND batas_atas IS NOT NULL AND ? BETWEEN batas_bawah AND batas_atas)
+        )
+        LIMIT 1
+    ");
+    $stmt->bind_param("iddd", $id_kriteria, $nilai, $nilai, $nilai);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        return $row['nama'];
+    }
+    return 'Tidak Diketahui';
+}
 
+// --- Fungsi insert alternatif ---
 function insertAlternatif($koneksi, $data) {
     $stmt = $koneksi->prepare("
         INSERT INTO alternatif 
-        (nama, sex, tgl_timbang, tgl_lahir, umur, bb, tb, z_score_tb_u, z_score_bb_u, z_score_bb_tb, status_tb_u, status_bb_u, status_bb_tb, imt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (nama, sex, tgl_timbang, tgl_lahir, umur, bb, tb, z_score_tb_u, z_score_bb_u, z_score_bb_tb, status_tb_u, status_bb_u, status_bb_tb, imt, z_score_imt, status_imt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
+    // Format: s=string, i=integer, d=double
     $stmt->bind_param(
-        "ssssiddssssssd",
+        "ssssidddssssddds",
         $data['nama'],
         $data['sex'],
         $data['tgl_timbang'],
@@ -58,49 +89,31 @@ function insertAlternatif($koneksi, $data) {
         $data['status_tb_u'],
         $data['status_bb_u'],
         $data['status_bb_tb'],
-        $data['imt']
+        $data['imt'],
+        $data['z_score_imt'],
+        $data['status_imt']
     );
 
     return $stmt->execute();
 }
 
+// --- Fungsi validasi dan format tanggal dari Excel ---
 function formatTanggal($hari, $bulan, $tahun) {
-    // Validasi input kosong
-    if (empty($hari) || empty($bulan) || empty($tahun)) {
-        return null;
-    }
-    
-    // Konversi ke integer untuk memastikan
+    if (empty($hari) || empty($bulan) || empty($tahun)) return null;
+
     $hari = intval($hari);
     $bulan = intval($bulan);
     $tahun = intval($tahun);
     
-    // Fix tahun 2 digit ke 4 digit
-    if ($tahun < 100) {
-        // Jika tahun < 50, anggap 20xx (2000-2049)
-        // Jika tahun >= 50, anggap 19xx (1950-1999)
-        $tahun += ($tahun < 50) ? 2000 : 1900;
-    }
-    
-    // Validasi range bulan
-    if ($bulan < 1 || $bulan > 12) {
-        return null;
-    }
-    
-    // Validasi range hari
-    if ($hari < 1 || $hari > 31) {
-        return null;
-    }
-    
-    // Validasi tanggal valid menggunakan checkdate
-    if (!checkdate($bulan, $hari, $tahun)) {
-        return null;
-    }
-    
-    // Format ke YYYY-MM-DD untuk MySQL
+    if ($tahun < 100) $tahun += ($tahun < 50) ? 2000 : 1900;
+    if ($bulan < 1 || $bulan > 12) return null;
+    if ($hari < 1 || $hari > 31) return null;
+    if (!checkdate($bulan, $hari, $tahun)) return null;
+
     return sprintf('%04d-%02d-%02d', $tahun, $bulan, $hari);
 }
 
+// --- Proses import Excel ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file_excel'])) {
     $file = $_FILES['file_excel']['tmp_name'];
     $successCount = 0;
@@ -112,66 +125,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file_excel'])) {
 
         for ($i = 1; $i < count($rows); $i++) {
             $row = $rows[$i];
-            
-            // Skip baris kosong
-            if (empty($row[1])) continue;
+            if (empty($row[1])) continue; // skip baris kosong
 
-            // Format tanggal dengan validasi
+            // --- Format tanggal ---
             $tgl_timbang = formatTanggal($row[3], $row[4], $row[5]);
             $tgl_lahir   = formatTanggal($row[6], $row[7], $row[8]);
 
-            // Validasi tanggal hasil
             if (!$tgl_timbang || !$tgl_lahir) {
                 $failCount++;
-                $errors[] = "Baris " . ($i + 1) . ": Format tanggal tidak valid (Timbang: {$row[3]}/{$row[4]}/{$row[5]}, Lahir: {$row[6]}/{$row[7]}/{$row[8]})";
+                $errors[] = "Baris ".($i+1).": Format tanggal tidak valid";
                 continue;
             }
 
-            // Sex converter dengan validasi
+            // --- Sex (convert 1=L, 2=P) ---
             $sex = $row[2] == '1' ? 'L' : ($row[2] == '2' ? 'P' : 'Tidak Diketahui');
 
-            // Data array
+            // --- Data dasar ---
+            $bb = !empty($row[10]) ? floatval($row[10]) : 0;
+            $tb = !empty($row[11]) ? floatval($row[11]) : 0;
+            $umur = !empty($row[9]) ? intval($row[9]) : 0;
+
+            // --- Z-Score dari Excel ---
+            $z_tb_u = !empty($row[12]) ? floatval($row[12]) : 0;
+            $z_bb_u = !empty($row[13]) ? floatval($row[13]) : 0;
+            $z_bb_tb = !empty($row[14]) ? floatval($row[14]) : 0;
+
+            // --- Hitung IMT ---
+            $imt = $tb > 0 ? $bb / (($tb/100)**2) : 0;
+
+            // --- HITUNG Z-Score IMT dari WHO reference ---
+            $z_score_imt = getZScoreIMT($koneksi, $sex, $umur, $imt);
+
+            // --- Status otomatis berdasarkan sub_kriteria ---
+            $status_bb_u = getStatus($koneksi, 1, $z_bb_u);      // K1 (BB/U)
+            $status_tb_u = getStatus($koneksi, 2, $z_tb_u);      // K2 (TB/U)
+            $status_bb_tb = getStatus($koneksi, 3, $z_bb_tb);    // K3 (BB/TB)
+            $status_imt = getStatus($koneksi, 4, $z_score_imt);  // K4 (IMT) - dari Z-Score IMT!
+
+            // --- Prepare data ---
             $formData = [
                 'nama' => trim($row[1]),
                 'sex' => $sex,
                 'tgl_timbang' => $tgl_timbang,
                 'tgl_lahir' => $tgl_lahir,
-                'umur' => !empty($row[9]) ? intval($row[9]) : 0,
-                'bb' => !empty($row[10]) ? floatval($row[10]) : 0,
-                'tb' => !empty($row[11]) ? floatval($row[11]) : 0,
-                'z_score_tb_u' => !empty($row[12]) ? floatval($row[12]) : 0,
-                'z_score_bb_u' => !empty($row[13]) ? floatval($row[13]) : 0,
-                'z_score_bb_tb' => !empty($row[14]) ? floatval($row[14]) : 0,
-                'status_tb_u' => !empty($row[15]) ? trim($row[15]) : '',
-                'status_bb_u' => !empty($row[16]) ? trim($row[16]) : '',
-                'status_bb_tb' => !empty($row[17]) ? trim($row[17]) : '',
-                'imt' => !empty($row[18]) ? floatval($row[18]) : 0,
+                'umur' => $umur,
+                'bb' => $bb,
+                'tb' => $tb,
+                'z_score_tb_u' => $z_tb_u,
+                'z_score_bb_u' => $z_bb_u,
+                'z_score_bb_tb' => $z_bb_tb,
+                'status_tb_u' => $status_tb_u,
+                'status_bb_u' => $status_bb_u,
+                'status_bb_tb' => $status_bb_tb,
+                'imt' => $imt,
+                'z_score_imt' => $z_score_imt,
+                'status_imt' => $status_imt
             ];
 
-            try {
-                if (insertAlternatif($koneksi, $formData)) {
-                    $successCount++;
-                } else {
-                    $failCount++;
-                    $errors[] = "Baris " . ($i + 1) . " ({$formData['nama']}): Gagal insert - " . $koneksi->error;
-                }
-            } catch (Exception $e) {
+            // --- Insert ke DB ---
+            if (insertAlternatif($koneksi, $formData)) {
+                $successCount++;
+            } else {
                 $failCount++;
-                $errors[] = "Baris " . ($i + 1) . " ({$formData['nama']}): " . $e->getMessage();
+                $errors[] = "Baris ".($i+1)." ({$formData['nama']}): ".$koneksi->error;
             }
         }
-        
-        // Set session untuk notifikasi
+
         $_SESSION['import_success'] = $successCount;
         $_SESSION['import_fail'] = $failCount;
-        if (!empty($errors)) {
-            $_SESSION['import_errors'] = $errors;
-        }
-        
+        if (!empty($errors)) $_SESSION['import_errors'] = $errors;
+
         header("Location: views/alternatif.php");
         exit;
+
     } else {
-        $_SESSION['import_error'] = "Gagal membaca file Excel: " . SimpleXLSX::parseError();
+        $_SESSION['import_fail'] = 0;
+        $_SESSION['import_errors'] = ["Gagal membaca file Excel: " . SimpleXLSX::parseError()];
         header("Location: views/alternatif.php");
         exit;
     }

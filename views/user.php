@@ -71,7 +71,7 @@ $end = $offset + $data->num_rows;
   </div>
 <?php endif; ?>
   <div class="card">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
       <h3 class="m-0">Data User</h3>
       <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#modalTambah">+ Tambah</button>
     </div>
@@ -97,7 +97,7 @@ $end = $offset + $data->num_rows;
               <td><?= htmlspecialchars($row['username']) ?></td>
               <td><?= htmlspecialchars($row['role']) ?></td>
               <td class="text-center">
-                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['id'] ?>">
+                <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['id'] ?>">
                   <i class="bi bi-pencil"></i>
                 </button>
                 <a href="?action=hapus&id=<?= $row['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Yakin ingin hapus?')">
@@ -111,7 +111,7 @@ $end = $offset + $data->num_rows;
               <div class="modal-dialog">
                 <div class="modal-content">
                   <form method="POST">
-                    <div class="modal-header bg-primary text-white">
+                    <div class="modal-header bg-success text-white">
                       <h5 class="modal-title">Edit User</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
@@ -139,7 +139,7 @@ $end = $offset + $data->num_rows;
                       </div>
                     </div>
                     <div class="modal-footer">
-                      <button type="submit" class="btn btn-primary">Simpan</button>
+                      <button type="submit" class="btn btn-success">Simpan</button>
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     </div>
                   </form>
@@ -192,7 +192,7 @@ $end = $offset + $data->num_rows;
     <div class="modal-dialog">
       <div class="modal-content">
         <form method="POST">
-          <div class="modal-header bg-primary text-white">
+          <div class="modal-header bg-success text-white">
             <h5 class="modal-title">Tambah User</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
@@ -219,7 +219,7 @@ $end = $offset + $data->num_rows;
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-primary" type="submit">Simpan</button>
+            <button class="btn btn-success" type="submit">Simpan</button>
             <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Batal</button>
           </div>
         </form>

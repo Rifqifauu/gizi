@@ -2,14 +2,14 @@
 $currentPage = basename($_SERVER['PHP_SELF']);
 
 ?>
-
-
-<aside class="navbar navbar-vertical navbar-expand-lg navbar-dark sidebar" data-bs-theme="dark">
+<html>
+<aside class="navbar navbar-vertical navbar-expand-lg sidebar">
   <div class="container-fluid px-0 justify-content-start">
-    <h1 class="navbar-brand text-white bg-primary h-full gap-3 d-flex p-4 align-items-center">
-      <a href="dashboard.php" class="fw-bold text-decoration-none text-white" style="font-size:.9rem;">SPK - PROMETHE</a>
-    </h1>
-
+    <div class="bg-sidebar-header">
+      <h1 class="navbar-brand text-white h-full gap-3 p-4 align-items-center">
+        <a href="dashboard.php" class="fw-bold text-decoration-none text-success" style="font-size:.9rem;">SPK - PROMETHE</a>
+      </h1>
+    </div>
     <div class="offcanvas offcanvas-start px-lg-3" id="sidebar-menu">
       <div class="offcanvas-header">
         <div class="d-flex gap-3 align-items-center">
@@ -26,17 +26,17 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 
           <!-- === DASHBOARD SECTION === -->
           <li class="nav-item w-100">
-            <div class="text-uppercase small fw-bold text-secondary px-3 mt-3 mb-1">Dashboard</div>
+            <div class="text-uppercase small fw-bold text-white px-3 mt-3 mb-1">Dashboard</div>
             <a class="nav-link d-flex align-items-center justify-content-start <?= ($currentPage === 'index.php') ? 'active' : '' ?>" href="index.php">
               <i class="bi bi-house-fill me-2"></i><span>Beranda</span>
             </a>
           </li>
 
           <!-- === MASTER DATA SECTION === -->
-                     <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+          <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
 
           <li class="nav-item w-100 mt-3">
-            <div class="text-uppercase small fw-bold text-secondary px-3 mb-1">Master Data</div>
+            <div class="text-uppercase small fw-bold text-white px-3 mb-1">Master Data</div>
 
             <a class="nav-link d-flex align-items-center justify-content-start <?= ($currentPage === 'kriteria.php') ? 'active' : '' ?>" href="kriteria.php">
               <i class="bi bi-list-check me-2"></i><span>Data Kriteria</span>
@@ -47,10 +47,10 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             </a>
           </li>
           <?php endif; ?>
-          <!-- === Cek Gizi SECTION === -->
 
+          <!-- === Cek Gizi SECTION === -->
           <li class="nav-item w-100 mt-3">
-                        <div class="text-uppercase small fw-bold text-secondary px-3 mb-1">Penilaian</div>
+            <div class="text-uppercase small fw-bold text-white px-3 mb-1">Penilaian</div>
 
             <a class="nav-link d-flex align-items-center justify-content-start <?= ($currentPage === 'cek-gizi.php') ? 'active' : '' ?>" href="cek-gizi.php">
               <i class="bi bi-pencil-square me-2"></i><span>Cek Gizi Balita</span>
@@ -59,20 +59,22 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 
           <!-- === USER SECTION === -->
           <li class="nav-item w-100 mt-3">
-            <div class="text-uppercase small fw-bold text-secondary px-3 mb-1">User</div>
+            <div class="text-uppercase small fw-bold text-white px-3 mb-1">User</div>
             <a class="nav-link d-flex align-items-center justify-content-start <?= ($currentPage === 'user.php') ? 'active' : '' ?>" href="user.php">
               <i class="bi bi-person-fill me-2"></i><span>Data User</span>
             </a>
           </li>
 
         </ul>
-        <div onclick="logout()" class="mt-auto mb-3 px-3 btn d-flex justify-content-start gap-3 text-white bg-danger w-100">
+        <div onclick="logout()" class="mt-auto mb-3 px-3 btn d-flex justify-content-start gap-3 text-white btn-logout w-100">
           <i class="bi bi-door-open"></i>
           <span class="text-white">Logout</span>
+        </div>
       </div>
     </div>
   </div>
 </aside>
+
 <script>
   function logout() {
     if (confirm('Apakah Anda yakin ingin logout?')) {
@@ -80,31 +82,44 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     }
   }
 </script>
+
 <style>
   .sidebar {
-    background-color: #111827;
+    background: linear-gradient(135deg, #1eae6bff, #067c4dff);
     min-height: 100vh;
   }
 
+  .bg-sidebar-header {
+    background-color: #ffffffff;
+  }
+
   .nav-link {
-    color: #adb5bd;
+    color: #ffffff;
     padding: 0.6rem 1rem;
-    border-radius: .5rem;
+    border-radius: 0.5rem;
     transition: background-color 0.3s, color 0.3s;
     font-size: 0.95rem;
   }
 
   .nav-link:hover {
-    background-color: #1f2937;
+    background-color: rgba(255, 255, 255, 0.15);
     color: #ffffff;
   }
 
   .nav-link.active {
-    background-color: #8e9792ff;
-    color: #fff;
+    background-color: #ffffff;
+    color: #259753 !important;
+    font-weight: bold;
   }
 
-  .text-secondary {
-    color: #9ca3af !important;
+  .btn-logout {
+    background-color: #dc3545;
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-logout:hover {
+    background-color: #c82333;
+    color: #ffffff !important;
   }
 </style>

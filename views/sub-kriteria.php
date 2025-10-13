@@ -76,7 +76,7 @@ ob_start();
   </div>
 <?php endif; ?>
   <div class="card">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
       <div>
         <h3 class="m-0">Sub Kriteria: <?= htmlspecialchars($kriteria['nama']) ?></h3>
       </div>
@@ -106,7 +106,7 @@ ob_start();
               <td><?= $row['batas_atas'] !== null ? htmlspecialchars($row['batas_atas']) : '-' ?></td>
               <td><?= htmlspecialchars($row['nilai_skala']) ?></td>
               <td class="text-center">
-                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['id'] ?>">
+                <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['id'] ?>">
                   <i class="bi bi-pencil"></i>
                 </button>
                 <a href="?action=hapus&id=<?= $row['id'] ?>&id_kriteria=<?= $id_kriteria ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Yakin ingin hapus?')">
@@ -120,7 +120,7 @@ ob_start();
               <div class="modal-dialog">
                 <div class="modal-content">
                   <form method="POST">
-                    <div class="modal-header bg-primary text-white">
+                    <div class="modal-header bg-success text-white">
                       <h5 class="modal-title">Edit Sub Kriteria</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
@@ -145,7 +145,7 @@ ob_start();
                       </div>
                     </div>
                     <div class="modal-footer">
-                      <button type="submit" class="btn btn-primary">Simpan</button>
+                      <button type="submit" class="btn btn-success">Simpan</button>
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     </div>
                   </form>
@@ -163,7 +163,7 @@ ob_start();
     <div class="modal-dialog">
       <div class="modal-content">
         <form method="POST">
-          <div class="modal-header bg-primary text-white">
+          <div class="modal-header bg-success text-white">
             <h5 class="modal-title">Tambah Sub Kriteria</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
@@ -187,7 +187,7 @@ ob_start();
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-primary" type="submit">Simpan</button>
+            <button class="btn btn-success" type="submit">Simpan</button>
             <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Batal</button>
           </div>
         </form>

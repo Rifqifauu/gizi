@@ -63,7 +63,7 @@ $data = $koneksi->query("SELECT * FROM kriteria ORDER BY id DESC");
   </div>
 <?php endif; ?>
   <div class="card">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
       <h3 class="m-0">Data Kriteria</h3>
       <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#modalTambah">+ Tambah</button>
     </div>
@@ -95,7 +95,7 @@ $data = $koneksi->query("SELECT * FROM kriteria ORDER BY id DESC");
                  >
                    <i class="bi bi-eye"></i>
                 </a>
-                <button class="btn btn-sm btn-outline-primary" 
+                <button class="btn btn-sm btn-outline-success" 
                         data-bs-toggle="modal" 
                         data-bs-target="#modalEdit<?= $row['id'] ?>">
                         <i class="bi bi-pencil"></i>
@@ -112,7 +112,7 @@ $data = $koneksi->query("SELECT * FROM kriteria ORDER BY id DESC");
               <div class="modal-dialog">
                 <div class="modal-content">
                   <form method="POST">
-                    <div class="modal-header bg-primary text-white">
+                    <div class="modal-header bg-success text-white">
                       <h5 class="modal-title">Edit Kriteria</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
@@ -137,7 +137,7 @@ $data = $koneksi->query("SELECT * FROM kriteria ORDER BY id DESC");
                       </div>
                     </div>
                     <div class="modal-footer">
-                      <button type="submit" class="btn btn-primary">Simpan</button>
+                      <button type="submit" class="btn btn-success">Simpan</button>
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     </div>
                   </form>
@@ -155,7 +155,7 @@ $data = $koneksi->query("SELECT * FROM kriteria ORDER BY id DESC");
     <div class="modal-dialog">
       <div class="modal-content">
         <form method="POST">
-          <div class="modal-header bg-primary text-white">
+          <div class="modal-header bg-success text-white">
             <h5 class="modal-title">Tambah Kriteria</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
@@ -179,7 +179,7 @@ $data = $koneksi->query("SELECT * FROM kriteria ORDER BY id DESC");
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-primary" type="submit">Simpan</button>
+            <button class="btn btn-success" type="submit">Simpan</button>
             <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Batal</button>
           </div>
         </form>
