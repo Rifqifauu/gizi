@@ -3,19 +3,29 @@ $title = 'Data Balita';
 include '../koneksi.php';
 ob_start();
 
-/* ==================== FUNGSI ==================== */
+function getStatus($koneksi, $id_kriteria, $nilai) {
+    if ($nilai === null) {
+        return 'Tidak Diketahui';
+    }
 
-// Ambil status dari sub_kriteria (K1, K2, K3, K4)
-function getStatus($koneksi, $kriteria, $nilai) {
-    $stmt = $koneksi->prepare("SELECT nama FROM sub_kriteria WHERE kriteria = ? AND ? BETWEEN batas_bawah AND batas_atas LIMIT 1");
-    $stmt->bind_param("sd", $kriteria, $nilai);
+    $nilai = (float) $nilai; // pastikan float
+    $id_kriteria = (int) $id_kriteria; // pastikan integer
+
+    $stmt = $koneksi->prepare("
+        SELECT nama FROM sub_kriteria 
+        WHERE id_kriteria = ? 
+        AND ? BETWEEN CAST(batas_bawah AS DECIMAL(10,2)) AND CAST(batas_atas AS DECIMAL(10,2))
+        LIMIT 1
+    ");
+    $stmt->bind_param("id", $id_kriteria, $nilai);
     $stmt->execute();
     $result = $stmt->get_result();
     if ($row = $result->fetch_assoc()) {
         return $row['nama'];
     }
-    return 'Unknown';
 }
+
+
 
 // Hitung Z-Score IMT berdasarkan WHO reference (tabel who_imt_ref)
 function getZScoreIMT($koneksi, $sex, $umur_bulan, $imt) {
@@ -61,14 +71,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'tambah') {
     $z_score_tb_u = $_POST['z_score_tb_u'];
     $z_score_bb_u = $_POST['z_score_bb_u'];
     $z_score_bb_tb = $_POST['z_score_bb_tb'];
+var_dump($z_score_bb_tb);
 
     $imt = $tb > 0 ? $bb / (($tb / 100) ** 2) : 0;
     $z_score_imt = getZScoreIMT($koneksi, $sex, $umur, $imt);
 
-    $status_bb_u = getStatus($koneksi, 'K1', $z_score_bb_u);
-    $status_tb_u = getStatus($koneksi, 'K2', $z_score_tb_u);
-    $status_bb_tb = getStatus($koneksi, 'K3', $z_score_bb_tb);
-    $status_imt_u = getStatus($koneksi, 'K4', $z_score_imt);
+    $status_bb_u = getStatus($koneksi, '1', $z_score_bb_u);
+    $status_tb_u = getStatus($koneksi, '2', $z_score_tb_u);
+    $status_bb_tb = getStatus($koneksi, '3', $z_score_bb_tb);
+    
+    $status_imt_u = getStatus($koneksi, '4', $z_score_imt);
 
     $stmt = $koneksi->prepare("
         INSERT INTO alternatif (
@@ -104,14 +116,16 @@ if (isset($_POST['action']) && $_POST['action'] === 'edit') {
     $z_score_tb_u = $_POST['z_score_tb_u'];
     $z_score_bb_u = $_POST['z_score_bb_u'];
     $z_score_bb_tb = $_POST['z_score_bb_tb'];
+// 
+
 
     $imt = $tb > 0 ? $bb / (($tb / 100) ** 2) : 0;
     $z_score_imt = getZScoreIMT($koneksi, $sex, $umur, $imt);
 
-    $status_bb_u = getStatus($koneksi, 'K1', $z_score_bb_u);
-    $status_tb_u = getStatus($koneksi, 'K2', $z_score_tb_u);
-    $status_bb_tb = getStatus($koneksi, 'K3', $z_score_bb_tb);
-    $status_imt_u = getStatus($koneksi, 'K4', $z_score_imt);
+    $status_bb_u = getStatus($koneksi, '1', $z_score_bb_u);
+    $status_tb_u = getStatus($koneksi, '2', $z_score_tb_u);
+    $status_bb_tb = getStatus($koneksi, '3', $z_score_bb_tb);
+    $status_imt_u = getStatus($koneksi, '4', $z_score_imt);
 
     $stmt = $koneksi->prepare("
         UPDATE alternatif 
