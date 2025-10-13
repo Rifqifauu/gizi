@@ -88,7 +88,11 @@ foreach ($paginated_ids as $id) {
 
 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
     <h3 class="m-0">Net Flow (Φ) & Ranking</h3>
+    <div class="mb-3 px-3">
+    <a href="/script/export-csv.php" class="btn btn-sm btn-primary">Export CSV</a>
 </div>
+</div>
+
 
 
 <div class="table-responsive">

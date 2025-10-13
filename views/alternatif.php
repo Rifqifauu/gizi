@@ -7,23 +7,29 @@ function getStatus($koneksi, $id_kriteria, $nilai) {
     if ($nilai === null) {
         return 'Tidak Diketahui';
     }
-
-    $nilai = (float) $nilai; // pastikan float
-    $id_kriteria = (int) $id_kriteria; // pastikan integer
-
+   
+    
     $stmt = $koneksi->prepare("
         SELECT nama FROM sub_kriteria 
-        WHERE id_kriteria = ? 
-        AND ? BETWEEN CAST(batas_bawah AS DECIMAL(10,2)) AND CAST(batas_atas AS DECIMAL(10,2))
+        WHERE id_kriteria=? 
+        AND (
+            (batas_bawah IS NULL AND batas_atas IS NULL) 
+            OR (batas_bawah IS NULL AND ? <= batas_atas) 
+            OR (batas_atas IS NULL AND ? >= batas_bawah)
+            OR (batas_bawah IS NOT NULL AND batas_atas IS NOT NULL AND ? BETWEEN batas_bawah AND batas_atas)
+        )
         LIMIT 1
     ");
-    $stmt->bind_param("id", $id_kriteria, $nilai);
+    $stmt->bind_param("iddd", $id_kriteria, $nilai, $nilai, $nilai);
     $stmt->execute();
     $result = $stmt->get_result();
-    if ($row = $result->fetch_assoc()) {
+    $row = $result->fetch_assoc();
+    if ($row ) {
         return $row['nama'];
     }
+    return 'Tidak Diketahui';
 }
+
 
 
 
@@ -91,11 +97,11 @@ var_dump($z_score_bb_tb);
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->bind_param(
-        "ssssidddssssdddd",
+        "ssssidddddsssddsi",
         $nama, $sex, $tgl_timbang, $tgl_lahir, $umur, $bb, $tb,
         $z_score_tb_u, $z_score_bb_u, $z_score_bb_tb,
         $status_tb_u, $status_bb_u, $status_bb_tb,
-        $imt, $z_score_imt, $status_imt_u
+        $imt, $z_score_imt, $status_imt_u,
     );
     $stmt->execute();
 
@@ -116,7 +122,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'edit') {
     $z_score_tb_u = $_POST['z_score_tb_u'];
     $z_score_bb_u = $_POST['z_score_bb_u'];
     $z_score_bb_tb = $_POST['z_score_bb_tb'];
-// 
+
 
 
     $imt = $tb > 0 ? $bb / (($tb / 100) ** 2) : 0;
@@ -125,6 +131,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'edit') {
     $status_bb_u = getStatus($koneksi, '1', $z_score_bb_u);
     $status_tb_u = getStatus($koneksi, '2', $z_score_tb_u);
     $status_bb_tb = getStatus($koneksi, '3', $z_score_bb_tb);
+       
     $status_imt_u = getStatus($koneksi, '4', $z_score_imt);
 
     $stmt = $koneksi->prepare("
@@ -135,13 +142,15 @@ if (isset($_POST['action']) && $_POST['action'] === 'edit') {
             imt=?, z_score_imt=?, status_imt=?
         WHERE id=?
     ");
+    
     $stmt->bind_param(
-        "ssssidddssssddssi",
+        "ssssidddddsssddsi",
         $nama, $sex, $tgl_timbang, $tgl_lahir, $umur, $bb, $tb,
         $z_score_tb_u, $z_score_bb_u, $z_score_bb_tb,
         $status_tb_u, $status_bb_u, $status_bb_tb,
         $imt, $z_score_imt, $status_imt_u, $id
     );
+    
     $stmt->execute();
 
     header("Location: ?msg=updated");

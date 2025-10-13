@@ -75,7 +75,7 @@ function insertAlternatif($koneksi, $data) {
 
     // Format: s=string, i=integer, d=double
     $stmt->bind_param(
-        "ssssidddssssddds",
+        "ssssidddddsssdds",
         $data['nama'],
         $data['sex'],
         $data['tgl_timbang'],
