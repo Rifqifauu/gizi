@@ -79,7 +79,7 @@ $paginated_ids = array_slice($sorted_ids, $offset, $limit);
 $data_for_display = [];
 foreach ($paginated_ids as $id) {
     // Ambil nama dari database
-    $result = $koneksi->query("SELECT id, nama FROM alternatif WHERE id = $id");
+    $result = $koneksi->query("SELECT id, nama,status_bb_u FROM alternatif WHERE id = $id");
     if ($result && $result->num_rows > 0) {
         $data_for_display[] = $result->fetch_assoc();
     }
@@ -103,6 +103,7 @@ foreach ($paginated_ids as $id) {
                 <th>Nama Alternatif</th>
                 <th>Leaving Flow (Φ⁺)</th>
                 <th>Entering Flow (Φ⁻)</th>
+                <th>Status Gizi</th>
                 <th>Net Flow (Φ)</th>
             </tr>
         </thead>
@@ -129,6 +130,7 @@ foreach ($paginated_ids as $id) {
                     <td><?= htmlspecialchars($row['nama'] ?: 'Null') ?></td>
                     <td><?= number_format($flow['leaving'], 3) ?></td>
                     <td><?= number_format($flow['entering'], 3) ?></td>
+                    <td><?= htmlspecialchars($row['status_bb_u'] ?: 'Null') ?></td>
                     <td><?= number_format($flow['net'], 3) ?></td>
                 </tr>
             <?php endforeach; ?>
@@ -153,15 +155,15 @@ foreach ($paginated_ids as $id) {
         <nav>
             <ul class="pagination justify-content-end my-3 px-3">
                 <li class="page-item <?= $page_net <= 1 ? 'disabled' : '' ?>">
-                    <a class="page-link" href="?tab=net-flow&page_net=<?= $page_net - 1 ?>">Previous</a>
+                    <a class="page-link" href="?tab=hasil-akhir&page_net=<?= $page_net - 1 ?>">Previous</a>
                 </li>
                 <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                     <li class="page-item <?= $i == $page_net ? 'active' : '' ?>">
-                        <a class="page-link" href="?tab=net-flow&page_net=<?= $i ?>"><?= $i ?></a>
+                        <a class="page-link" href="?tab=hasil-akhir&page_net=<?= $i ?>"><?= $i ?></a>
                     </li>
                 <?php endfor; ?>
                 <li class="page-item <?= $page_net >= $total_pages ? 'disabled' : '' ?>">
-                    <a class="page-link" href="?tab=net-flow&page_net=<?= $page_net + 1 ?>">Next</a>
+                    <a class="page-link" href="?tab=hasil-akhir&page_net=<?= $page_net + 1 ?>">Next</a>
                 </li>
             </ul>
         </nav>

@@ -22,7 +22,7 @@ $activeTab = $_GET['tab'] ?? 'status';
         <a href="?tab=derajat" class="nav-link <?= $activeTab==='derajat'?'active':'' ?>">Derajat Preferensi</a>
     </li>
     <li class="nav-item">
-        <a href="?tab=net-flow" class="nav-link <?= $activeTab==='net-flow'?'active':'' ?>">Net Flow</a>
+        <a href="?tab=hasil-akhir" class="nav-link <?= $activeTab==='hasil-akhir'?'active':'' ?>">Hasil Akhir</a>
     </li>
 </ul>
     </div>
@@ -41,8 +41,8 @@ $activeTab = $_GET['tab'] ?? 'status';
     <div class="tab-pane fade <?= $activeTab==='derajat'?'show active':'' ?>" id="derajat">
         <?php include __DIR__ . '/components/cek-gizi/derajat-preferensi.php'; ?>
     </div>
-    <div class="tab-pane fade <?= $activeTab==='net-flow'?'show active':'' ?>" id="derajat">
-        <?php include __DIR__ . '/components/cek-gizi/net-flow.php'; ?>
+    <div class="tab-pane fade <?= $activeTab==='hasil-akhir'?'show active':'' ?>" id="derajat">
+        <?php include __DIR__ . '/components/cek-gizi/hasil-akhir.php'; ?>
     </div>
 </div>
 

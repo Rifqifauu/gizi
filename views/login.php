@@ -37,160 +37,177 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SPK - PROMETHE</title>
+  <title>Login | SPK Gizi Balita</title>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.4.0/dist/css/tabler.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
   <style>
     body {
       background: linear-gradient(135deg, #1eae74ff, #067c47ff);
       min-height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
       font-family: "Segoe UI", sans-serif;
-    }
-
-    .login-container {
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      padding: 2.5rem;
-      border-radius: 20px;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
       color: #fff;
     }
 
-    .login-container h1 {
+    .container {
+      max-width: 1100px;
+    }
+
+    .left-section {
+      padding-right: 3rem;
+    }
+
+    .left-section h1 {
       font-weight: 700;
-      font-size: 1.8rem;
-      text-align: center;
-      margin-bottom: 0.25rem;
+      font-size: 2.2rem;
+      margin-bottom: 1rem;
     }
 
-    .login-container h2 {
-      font-weight: 400;
+    .left-section p {
       font-size: 1rem;
-      text-align: center;
-      margin-bottom: 1.5rem;
-      opacity: 0.85;
+      line-height: 1.7;
+      opacity: 0.9;
     }
 
-    .form-label {
-      color: #fff;
-      font-weight: 500;
+    .card {
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .card-body {
+      padding: 4rem 2rem;
+
     }
 
     .form-control {
-      background-color: rgba(255, 255, 255, 0.15);
-      border: none;
-      color: #fff;
-      transition: background 0.3s ease;
-    }
-
-    .form-control::placeholder {
-      color: rgba(255, 255, 255, 0.7);
-    }
-
-    .form-control:focus {
-      background-color: rgba(255, 255, 255, 0.25);
-      outline: none;
-      box-shadow: 0 0 0 2px #076b48;
-      color: #fff;
+      border-radius: 50px;
+      padding: 0.75rem 1rem;
     }
 
     .input-group-text {
-      background-color: rgba(255, 255, 255, 0.15) !important;
-      border: none !important;
-      color: #333 !important;
-      padding: 0.5rem 0.75rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: none !important;
+      border-radius: 50px;
+      background-color: #f8f9fa;
     }
 
-    .alert {
-      background-color: rgba(220, 53, 69, 0.9);
-      color: #fff;
+    .btn-primary {
+      background-color: #067c47;
       border: none;
-      text-align: center;
+      border-radius: 50px;
+      padding: 0.75rem;
       font-weight: 500;
-      margin-bottom: 1rem;
+    }
+
+    .btn-primary:hover {
+      background-color: #056b3e;
+    }
+
+    .form-label {
+      font-weight: 500;
     }
 
     #togglePassword {
       cursor: pointer;
-      color: #eeeeeeff;
-      font-size: 1.2rem;
     }
-.btn:hover {
-    color : black;
-}
-    
+
+    @media (max-width: 768px) {
+      body {
+        padding: 2rem 1rem;
+      }
+      .left-section {
+        text-align: center;
+        padding-right: 0;
+        margin-bottom: 2rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <h1>SPK Gizi Balita</h1>
-    <h2>Masuk ke Sistem</h2>
 
-    <?php if ($error): ?>
-      <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
-
-    <form action="" method="post" autocomplete="off" novalidate>
-      <div class="mb-3">
-        <label class="form-label">Username</label>
-        <input 
-          type="text" 
-          name="username" 
-          class="form-control" 
-          placeholder="Your Username" 
-          required 
-        />
+  <div class="container">
+    <div class="row align-items-center">
+      <!-- Kiri -->
+      <div class="col-md-6 left-section">
+        <h1>SPK Gizi Balita Metode Promethee</h1>
+        <p>
+          Sistem Pendukung Keputusan (SPK) Gizi Balita dengan metode Promethee membantu tenaga kesehatan dan kader posyandu 
+          dalam menentukan status gizi balita secara lebih cepat dan objektif. 
+          Dengan sistem ini, proses penilaian gizi dapat dilakukan berdasarkan berbagai kriteria seperti berat badan, tinggi badan, usia, dan data kesehatan lainnya.
+        </p>
+        <p>
+          Aplikasi ini dirancang untuk meningkatkan ketepatan analisis serta membantu pengambilan keputusan yang lebih akurat 
+          dalam upaya pencegahan dan penanganan gizi buruk pada anak-anak.
+        </p>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <div class="input-group">
-          <input 
-            type="password" 
-            name="password" 
-            class="form-control"
-            placeholder="Your password" 
-            required
-          />
-          <span class="input-group-text">
-            <i class="bi bi-eye" id="togglePassword"></i>
-          </span>
+      <!-- Kanan -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h3 class="text-center mb-1 text-dark p-4">Masuk Ke Sistem</h3>
+
+            <?php if ($error): ?>
+              <div class="alert alert-danger text-center"><?= htmlspecialchars($error) ?></div>
+            <?php endif; ?>
+
+            <form method="post" autocomplete="off">
+              <div class="mb-3">
+                <input 
+                  type="text" 
+                  name="username" 
+                  class="form-control" 
+                  placeholder="Masukkan username"
+                  required
+                >
+              </div>
+
+              <div class="mb-3">
+                <div class="input-group">
+                  <input 
+                    type="password" 
+                    name="password" 
+                    class="form-control" 
+                    placeholder="Masukkan password"
+                    required
+                  >
+                  <span class="input-group-text" id="togglePassword">
+                    <i class="bi bi-eye"></i>
+                  </span>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100">Masuk</button>
+            </form>
+          </div>
         </div>
       </div>
-
-      <div class="form-footer">
-        <button type="submit" class="btn w-100">Sign in</button>
-      </div>
-    </form>
+    </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.4.0/dist/js/tabler.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
   <script>
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.querySelector('input[name="password"]');
+    const icon = togglePassword.querySelector('i');
 
     togglePassword.addEventListener('click', () => {
-      const isPassword = passwordInput.getAttribute('type') === 'password';
-      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
-      togglePassword.classList.toggle('bi-eye-slash', isPassword);
-      togglePassword.classList.toggle('bi-eye', !isPassword);
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      icon.classList.toggle('bi-eye');
+      icon.classList.toggle('bi-eye-slash');
     });
   </script>
+
 </body>
 </html>
