@@ -53,7 +53,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <div class="text-uppercase small fw-bold text-white px-3 mb-1">Penilaian</div>
 
             <a class="nav-link d-flex align-items-center justify-content-start <?= ($currentPage === 'cek-gizi.php') ? 'active' : '' ?>" href="cek-gizi.php">
-              <i class="bi bi-pencil-square me-2"></i><span>Cek Gizi Balita</span>
+              <i class="bi bi-pencil-square me-2"></i><span class="">Perhitungan dan Analisis</span>
             </a>
           </li>
 

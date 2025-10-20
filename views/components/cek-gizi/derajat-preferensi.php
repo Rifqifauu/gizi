@@ -25,14 +25,14 @@ while ($row = $nilai_result->fetch_assoc()) {
 $alternatif_valid = array_intersect_key($alternatif, $nilai);
 $ids = array_keys($alternatif_valid);
 
-// --- 4. Hitung semua pasangan unik ---
+// --- 4. Hitung semua  ---
 $preferensi = [];
-foreach ($ids as $i => $id1) {
-    for ($j = $i + 1; $j < count($ids); $j++) {
-        $id2 = $ids[$j];
+foreach ($ids as $id1) {
+    foreach ($ids as $id2) {
+        if ($id1 === $id2) continue; 
+
         $p1 = $nilai[$id1];
         $p2 = $nilai[$id2];
-
         $k1 = max(0, $p1['k1'] - $p2['k1']);
         $k2 = max(0, $p1['k2'] - $p2['k2']);
         $k3 = max(0, $p1['k3'] - $p2['k3']);

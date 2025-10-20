@@ -1,3 +1,5 @@
+
+
 <?php
 $title = 'Net Flow';
 include '../koneksi.php';
@@ -89,7 +91,7 @@ foreach ($paginated_ids as $id) {
 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
     <h3 class="m-0">Net Flow (Φ) & Ranking</h3>
     <div class="mb-3 px-3">
-    <a href="/script/export-csv.php" class="btn btn-sm btn-primary">Export CSV</a>
+    <a href="/script/export-pdf.php" class="btn btn-md btn-danger">Export PDF</a>
 </div>
 </div>
 
@@ -143,8 +145,7 @@ foreach ($paginated_ids as $id) {
 <div class="d-flex justify-content-between align-items-center px-3">
     <?php
     $start = $offset + 1;
-    $end = $offset + $data->num_rows;
-    ?>
+$end = min($offset + count($data_for_display), $total_data);    ?>
     <?php if ($total_data > 0): ?>
         <div class="px-3 pt-2">
             <small class="text-muted">Menampilkan <?= $start ?>–<?= $end ?> dari <?= $total_data ?> data</small>

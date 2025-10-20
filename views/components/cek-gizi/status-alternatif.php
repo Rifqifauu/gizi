@@ -35,8 +35,8 @@ $data = $koneksi->query("SELECT * FROM alternatif ORDER BY id DESC LIMIT $limit 
                 while ($row = $data->fetch_assoc()): ?>
                     <tr>
                         <td><?= htmlspecialchars($row['nama'] ?: 'Null') ?></td>
-                        <td><?= htmlspecialchars($row['status_tb_u'] ?: 'Null') ?></td>
                         <td><?= htmlspecialchars($row['status_bb_u'] ?: 'Null') ?></td>
+                        <td><?= htmlspecialchars($row['status_tb_u'] ?: 'Null') ?></td>
                         <td><?= htmlspecialchars($row['status_bb_tb'] ?: 'Null') ?></td>
                         <td><?= htmlspecialchars($row['status_imt'] ?: 'Null') ?></td>
                     </tr>
