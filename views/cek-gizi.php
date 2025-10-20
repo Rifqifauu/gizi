@@ -15,9 +15,7 @@ $activeTab = $_GET['tab'] ?? 'status';
     <li class="nav-item">
         <a href="?tab=konversi" class="nav-link <?= $activeTab==='konversi'?'active':'' ?>">Konversi</a>
     </li>
-    <li class="nav-item">
-        <a href="?tab=matriks" class="nav-link <?= $activeTab==='matriks'?'active':'' ?>">Matriks</a>
-    </li>
+   
     <li class="nav-item">
         <a href="?tab=derajat" class="nav-link <?= $activeTab==='derajat'?'active':'' ?>">Derajat Preferensi</a>
     </li>

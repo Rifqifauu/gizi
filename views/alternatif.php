@@ -97,7 +97,7 @@ var_dump($z_score_bb_tb);
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->bind_param(
-        "ssssidddddsssddsi",
+        "ssssidddddsssdds",
         $nama, $sex, $tgl_timbang, $tgl_lahir, $umur, $bb, $tb,
         $z_score_tb_u, $z_score_bb_u, $z_score_bb_tb,
         $status_tb_u, $status_bb_u, $status_bb_tb,
