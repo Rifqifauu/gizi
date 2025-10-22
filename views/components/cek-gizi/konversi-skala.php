@@ -60,8 +60,8 @@ while ($row = $alternatif->fetch_assoc()) {
             <?php else: $no = $offset + 1; ?>
                 <?php while ($row = $alternatif->fetch_assoc()): ?>
                     <?php
-                        $k1 = getNilaiSkala($koneksi, $row['status_tb_u']);
-                        $k2 = getNilaiSkala($koneksi, $row['status_bb_u']);
+                        $k1 = getNilaiSkala($koneksi, $row['status_bb_u']);
+                        $k2 = getNilaiSkala($koneksi, $row['status_tb_u']);
                         $k3 = getNilaiSkala($koneksi, $row['status_bb_tb']);
                         $k4 = getNilaiSkala($koneksi, $row['status_imt']);
                     ?>
