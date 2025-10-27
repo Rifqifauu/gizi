@@ -79,10 +79,10 @@ th { background-color: #f2f2f2; }
         <tr>
             <th>Ranking</th>
             <th>Nama Alternatif</th>
-            <th>Leaving Flow (Φ⁺)</th>
-            <th>Entering Flow (Φ⁻)</th>
+            <th>Leaving Flow </th>
+            <th>Entering Flow</th>
             <th>Status Gizi</th>
-            <th>Net Flow (Φ)</th>
+            <th>Net Flow</th>
         </tr>
     </thead>
     <tbody>';
@@ -98,8 +98,6 @@ foreach ($flows as $id => $f) {
     </tr>';
 }
 
-$html .= '</tbody></table>
-<div class="footer">Dicetak pada: ' . date('d-m-Y H:i') . '</div>';
 
 // Generate PDF
 $options = new Options();
