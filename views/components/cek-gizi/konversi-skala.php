@@ -3,7 +3,6 @@ $title = 'Konversi Skala';
 include '../koneksi.php';
 include_once __DIR__ . '/../../../script/helpers.php';
 
-
 // Pagination
 $limit = 10;
 $page_skala = isset($_GET['page_skala']) ? (int) $_GET['page_skala'] : 1;
@@ -16,27 +15,49 @@ $total_page_skala = ceil($total_alternatif / $limit);
 // Ambil data alternatif
 $alternatif = $koneksi->query("SELECT * FROM alternatif ORDER BY id DESC LIMIT $limit OFFSET $offset");
 
-// Sync ke tabel konversi_nilai
-while ($row = $alternatif->fetch_assoc()) {
-    $id_alt = $row['id'];
-    $k1 = getNilaiSkala($koneksi, $row['status_tb_u']);
-    $k2 = getNilaiSkala($koneksi, $row['status_bb_u']);
-    $k3 = getNilaiSkala($koneksi, $row['status_bb_tb']);
-    $k4 = getNilaiSkala($koneksi, $row['status_imt']);
+// Cek jika tombol proses ditekan
+if (isset($_POST['proses_hitung'])) {
+    // Ambil semua alternatif (bukan hanya yang di halaman ini)
+    $all_alt = $koneksi->query("SELECT * FROM alternatif");
+    $count = 0;
+    while ($row = $all_alt->fetch_assoc()) {
+        $id_alt = $row['id'];
+        $k1 = getNilaiSkala($koneksi, $row['status_tb_u']);
+        $k2 = getNilaiSkala($koneksi, $row['status_bb_u']);
+        $k3 = getNilaiSkala($koneksi, $row['status_bb_tb']);
+        $k4 = getNilaiSkala($koneksi, $row['status_imt']);
 
-    // Insert or update otomatis
-    $koneksi->query("
-        INSERT INTO konversi_nilai (alternatif_id, k1, k2, k3, k4)
-        VALUES ($id_alt, '$k1', '$k2', '$k3', '$k4')
-        ON DUPLICATE KEY UPDATE
-            k1='$k1', k2='$k2', k3='$k3', k4='$k4'
-    ");
+        $koneksi->query("
+            INSERT INTO konversi_nilai (alternatif_id, k1, k2, k3, k4)
+            VALUES ($id_alt, '$k1', '$k2', '$k3', '$k4')
+            ON DUPLICATE KEY UPDATE
+                k1='$k1', k2='$k2', k3='$k3', k4='$k4'
+        ");
+        $count++;
+    }
+
+    // Redirect dengan pesan sukses agar tidak repost form
+    header("Location: ?tab=konversi&success=$count");
+    exit;
 }
 ?>
 
 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
     <h3 class="m-0">Konversi Nilai Skala</h3>
+
+    <form method="POST" class="m-0">
+        <button type="submit" name="proses_hitung" class="btn btn-light text-success fw-bold">
+            <i class="bi bi-calculator"></i> Proses Hitung
+        </button>
+    </form>
 </div>
+
+<?php if (isset($_GET['success'])): ?>
+    <div class="alert alert-success alert-dismissible fade show m-3">
+        ✅ Berhasil memproses <?= htmlspecialchars($_GET['success']) ?> data alternatif.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
 
 <div class="table-responsive">
     <table class="table align-middle table-hover m-0">
@@ -49,32 +70,29 @@ while ($row = $alternatif->fetch_assoc()) {
                 <th>IMT</th>
             </tr>
         </thead>
-        <tbody>
-            <?php
-            // Ambil ulang untuk ditampilkan karena pointer sudah di akhir loop sync
-            $alternatif->data_seek(0);
-            if ($alternatif->num_rows === 0): ?>
-                <tr>
-                    <td colspan="5" class="text-center text-muted py-3">Belum ada alternatif</td>
-                </tr>
-            <?php else: $no = $offset + 1; ?>
-                <?php while ($row = $alternatif->fetch_assoc()): ?>
-                    <?php
-                        $k1 = getNilaiSkala($koneksi, $row['status_bb_u']);
-                        $k2 = getNilaiSkala($koneksi, $row['status_tb_u']);
-                        $k3 = getNilaiSkala($koneksi, $row['status_bb_tb']);
-                        $k4 = getNilaiSkala($koneksi, $row['status_imt']);
-                    ?>
-                    <tr>
-                        <td><?= htmlspecialchars($row['nama'] ?: 'Null') ?></td>
-                        <td><?= htmlspecialchars($k1) ?></td>
-                        <td><?= htmlspecialchars($k2) ?></td>
-                        <td><?= htmlspecialchars($k3) ?></td>
-                        <td><?= htmlspecialchars($k4) ?></td>
-                    </tr>
-                <?php endwhile; ?>
-            <?php endif; ?>
-        </tbody>
+      <tbody>
+<?php
+if ($alternatif->num_rows === 0): ?>
+    <tr>
+        <td colspan="5" class="text-center text-muted py-3">Belum ada alternatif</td>
+    </tr>
+<?php else: ?>
+    <?php while ($row = $alternatif->fetch_assoc()): ?>
+        <?php
+            $id_alt = $row['id'];
+            $konv = $koneksi->query("SELECT * FROM konversi_nilai WHERE alternatif_id = $id_alt")->fetch_assoc();
+        ?>
+        <tr>
+            <td><?= htmlspecialchars($row['nama'] ?: 'Null') ?></td>
+            <td><?= htmlspecialchars($konv['k2'] ?? '-') ?></td>
+            <td><?= htmlspecialchars($konv['k1'] ?? '-') ?></td>
+            <td><?= htmlspecialchars($konv['k3'] ?? '-') ?></td>
+            <td><?= htmlspecialchars($konv['k4'] ?? '-') ?></td>
+        </tr>
+    <?php endwhile; ?>
+<?php endif; ?>
+</tbody>
+
     </table>
 </div>
 
