@@ -7,10 +7,10 @@ if ($page_status < 1) $page_status = 1;
 $offset = ($page_status - 1) * $limit;
 
 
-$total_data = $koneksi->query("SELECT COUNT(*) as total FROM alternatif WHERE is_archived = 0")->fetch_assoc()['total'];
+$total_data = $koneksi->query("SELECT COUNT(*) as total FROM alternatif WHERE is_archived = 1")->fetch_assoc()['total'];
 $total_pages = ceil($total_data / $limit);
 
-$data = $koneksi->query("SELECT * FROM alternatif WHERE is_archived = 0 ORDER BY id DESC LIMIT $limit OFFSET $offset");
+$data = $koneksi->query("SELECT * FROM alternatif WHERE is_archived = 1 ORDER BY id DESC LIMIT $limit OFFSET $offset");
 ?>
 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
     <h3 class="m-0">Status Kriteria Pada Setiap Alternatif</h3>

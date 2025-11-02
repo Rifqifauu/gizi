@@ -2,7 +2,7 @@
 include '../koneksi.php';
 
 // Ambil semua alternatif
-$alternatif = $koneksi->query("SELECT * FROM alternatif WHERE is_archived = 0 ORDER BY id ASC")->fetch_all(MYSQLI_ASSOC);
+$alternatif = $koneksi->query("SELECT * FROM alternatif WHERE is_archived = 1 ORDER BY id ASC")->fetch_all(MYSQLI_ASSOC);
 
 // Ambil alternatif yang dipilih
 $selected_id = isset($_GET['selected']) ? (int)$_GET['selected'] : 0;

@@ -9,16 +9,16 @@ $page_skala = isset($_GET['page_skala']) ? (int) $_GET['page_skala'] : 1;
 if ($page_skala < 1) $page_skala = 1;
 $offset = ($page_skala - 1) * $limit;
 
-$total_alternatif = $koneksi->query("SELECT COUNT(*) AS total FROM alternatif WHERE is_archived = 0")->fetch_assoc()['total'];
+$total_alternatif = $koneksi->query("SELECT COUNT(*) AS total FROM alternatif WHERE is_archived = 1")->fetch_assoc()['total'];
 $total_page_skala = ceil($total_alternatif / $limit);
 
 // Ambil data alternatif
-$alternatif = $koneksi->query("SELECT * FROM alternatif WHERE is_archived = 0 ORDER BY id DESC LIMIT $limit OFFSET $offset");
+$alternatif = $koneksi->query("SELECT * FROM alternatif WHERE is_archived = 1 ORDER BY id DESC LIMIT $limit OFFSET $offset");
 
 // Cek jika tombol proses ditekan
 if (isset($_POST['proses_hitung'])) {
     // Ambil semua alternatif (bukan hanya yang di halaman ini)
-    $all_alt = $koneksi->query("SELECT * FROM alternatif WHERE is_archived = 0");
+    $all_alt = $koneksi->query("SELECT * FROM alternatif where is_archived = 1");
     $count = 0;
     while ($row = $all_alt->fetch_assoc()) {
         $id_alt = $row['id'];

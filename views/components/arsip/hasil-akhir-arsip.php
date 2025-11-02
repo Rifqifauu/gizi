@@ -1,15 +1,27 @@
 <?php
-$title = 'Net Flow';
+$title = 'Hasil Akhir';
 include '../koneksi.php';
 
-/* ==================== BULK ARCHIVE ==================== */
-if (isset($_POST['action']) && $_POST['action'] === 'bulk_archive' && !empty($_POST['selected_ids'])) {
+/* ==================== BULK DELETE ==================== */
+if (isset($_POST['action']) && $_POST['action'] === 'bulk_delete' && !empty($_POST['selected_ids'])) {
     $ids = array_map('intval', $_POST['selected_ids']);
     $ids_str = implode(',', $ids);
 
     if (!empty($ids_str)) {
-        $koneksi->query("UPDATE alternatif SET is_archived = 1 WHERE id IN ($ids_str)");
-        header("Location: ?tab=hasil-akhir&msg=bulk_archived");
+        $koneksi->query("DELETE FROM alternatif WHERE id IN ($ids_str)");
+        header("Location: ?tab=hasil-akhir&msg=bulk_deleted");
+        exit;
+    }
+}
+
+/* ==================== BULK RESTORE ==================== */
+if (isset($_POST['action']) && $_POST['action'] === 'bulk_restore' && !empty($_POST['selected_ids'])) {
+    $ids = array_map('intval', $_POST['selected_ids']);
+    $ids_str = implode(',', $ids);
+
+    if (!empty($ids_str)) {
+        $koneksi->query("UPDATE alternatif SET is_archived = 0 WHERE id IN ($ids_str)");
+        header("Location: ?tab=hasil-akhir&msg=bulk_restored");
         exit;
     }
 }
@@ -20,7 +32,7 @@ if ($page_net < 1) $page_net = 1;
 $offset = ($page_net - 1) * $limit;
 
 // Ambil total alternatif
-$total_result = $koneksi->query("SELECT COUNT(*) as total FROM alternatif WHERE is_archived = 0");
+$total_result = $koneksi->query("SELECT COUNT(*) as total FROM alternatif WHERE is_archived = 1");
 if (!$total_result) {
     die("ERROR Query total: " . $koneksi->error);
 }
@@ -28,7 +40,7 @@ $total_data = $total_result->fetch_assoc()['total'];
 $total_pages = ceil($total_data / $limit);
 
 // Ambil semua alternatif untuk perhitungan flow
-$all_alternatif_result = $koneksi->query("SELECT id FROM alternatif WHERE is_archived = 0");
+$all_alternatif_result = $koneksi->query("SELECT id FROM alternatif WHERE is_archived = 1");
 if (!$all_alternatif_result) {
     die("ERROR Query all_alternatif: " . $koneksi->error);
 }
@@ -98,9 +110,14 @@ foreach ($paginated_ids as $id) {
 }
 ?>
 
-<?php if (isset($_GET['msg']) && $_GET['msg'] === 'bulk_archived'): ?>
+<?php if (isset($_GET['msg'])): ?>
   <div class="alert alert-success alert-dismissible fade show mx-3 mt-3" role="alert">
-    Data berhasil diarsipkan!
+    <?php
+    switch($_GET['msg']) {
+      case 'bulk_deleted': echo 'Data berhasil dihapus!'; break;
+      case 'bulk_restored': echo 'Data berhasil dikembalikan!'; break;
+    }
+    ?>
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
 <?php endif; ?>
@@ -108,10 +125,13 @@ foreach ($paginated_ids as $id) {
 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
     <h3 class="m-0">Net Flow (Φ) & Ranking</h3>
     <div class="mb-3 px-3">
-        <button type="button" id="bulkArchiveBtn" class="btn btn-md btn-warning me-2" style="display:none;" onclick="submitBulkArchive()">
-            <i class="bi bi-archive"></i> Arsipkan Terpilih
+        <button type="button" id="bulkDeleteBtn" class="btn btn-md btn-danger me-2" style="display:none;" onclick="submitBulkDelete()">
+            <i class="bi bi-trash"></i> Hapus Terpilih
         </button>
-        <a href="/script/export-pdf.php" class="btn btn-md btn-danger">Export PDF</a>
+        <button type="button" id="bulkRestoreBtn" class="btn btn-md btn-info me-2" style="display:none;" onclick="submitBulkRestore()">
+            <i class="bi bi-arrow-counterclockwise"></i> Kembalikan Terpilih
+        </button>
+        <a href="/script/export-pdf.php" class="btn btn-md btn-warning">Export PDF</a>
     </div>
 </div>
 
@@ -167,10 +187,16 @@ foreach ($paginated_ids as $id) {
     </table>
 </div>
 
-<!-- Hidden form untuk bulk archive -->
-<form id="bulkArchiveForm" method="POST" style="display:none;">
-    <input type="hidden" name="action" value="bulk_archive">
-    <div id="selectedContainer"></div>
+<!-- Hidden form untuk bulk delete -->
+<form id="bulkDeleteForm" method="POST" style="display:none;">
+    <input type="hidden" name="action" value="bulk_delete">
+    <div id="selectedContainerDelete"></div>
+</form>
+
+<!-- Hidden form untuk bulk restore -->
+<form id="bulkRestoreForm" method="POST" style="display:none;">
+    <input type="hidden" name="action" value="bulk_restore">
+    <div id="selectedContainerRestore"></div>
 </form>
 
 <!-- Pagination & Info -->
@@ -203,52 +229,55 @@ foreach ($paginated_ids as $id) {
     <?php endif; ?>
 </div>
 
-<!-- JS untuk Pilih Semua & Bulk Archive -->
+<!-- JS untuk Pilih Semua & Bulk Actions -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const selectAll = document.getElementById('selectAll');
-  const bulkArchiveBtn = document.getElementById('bulkArchiveBtn');
-  const selectedContainer = document.getElementById('selectedContainer');
+  const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+  const bulkRestoreBtn = document.getElementById('bulkRestoreBtn');
+  const selectedContainerDelete = document.getElementById('selectedContainerDelete');
+  const selectedContainerRestore = document.getElementById('selectedContainerRestore');
 
   function getRowCheckboxes() {
     return Array.from(document.querySelectorAll('.row-check'));
   }
 
-  function updateBulkArchiveBtn() {
+  function updateBulkButtons() {
     const checkboxes = getRowCheckboxes();
     const anyChecked = checkboxes.some(cb => cb.checked);
-    bulkArchiveBtn.style.display = anyChecked ? 'inline-block' : 'none';
+    bulkDeleteBtn.style.display = anyChecked ? 'inline-block' : 'none';
+    bulkRestoreBtn.style.display = anyChecked ? 'inline-block' : 'none';
   }
 
   // Toggle semua berdasarkan selectAll
   selectAll?.addEventListener('change', function() {
     const checkboxes = getRowCheckboxes();
     checkboxes.forEach(cb => cb.checked = this.checked);
-    updateBulkArchiveBtn();
+    updateBulkButtons();
   });
 
   // Event listener untuk setiap checkbox baris
   function attachRowListeners() {
     const checkboxes = getRowCheckboxes();
     checkboxes.forEach(cb => {
-      cb.removeEventListener('change', updateBulkArchiveBtn);
+      cb.removeEventListener('change', updateBulkButtons);
       cb.addEventListener('change', function() {
         if (!this.checked) selectAll.checked = false;
         const allChecked = getRowCheckboxes().every(c => c.checked);
         if (allChecked) selectAll.checked = true;
-        updateBulkArchiveBtn();
+        updateBulkButtons();
       });
     });
   }
 
   // Initial attach
   attachRowListeners();
-  updateBulkArchiveBtn();
+  updateBulkButtons();
 
-  // Fungsi submit bulk archive
-  window.submitBulkArchive = function() {
+  // Fungsi submit bulk delete
+  window.submitBulkDelete = function() {
     const checkboxes = getRowCheckboxes().filter(cb => cb.checked);
-    selectedContainer.innerHTML = '';
+    selectedContainerDelete.innerHTML = '';
     
     if (checkboxes.length === 0) return;
 
@@ -257,11 +286,30 @@ document.addEventListener('DOMContentLoaded', function () {
       input.type = 'hidden';
       input.name = 'selected_ids[]';
       input.value = cb.value;
-      selectedContainer.appendChild(input);
+      selectedContainerDelete.appendChild(input);
     });
 
-    if (!confirm(`Yakin ingin mengarsipkan ${checkboxes.length} data terpilih?`)) return;
-    document.getElementById('bulkArchiveForm').submit();
+    if (!confirm(`Yakin ingin MENGHAPUS PERMANEN ${checkboxes.length} data terpilih?`)) return;
+    document.getElementById('bulkDeleteForm').submit();
+  };
+
+  // Fungsi submit bulk restore
+  window.submitBulkRestore = function() {
+    const checkboxes = getRowCheckboxes().filter(cb => cb.checked);
+    selectedContainerRestore.innerHTML = '';
+    
+    if (checkboxes.length === 0) return;
+
+    checkboxes.forEach(cb => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'selected_ids[]';
+      input.value = cb.value;
+      selectedContainerRestore.appendChild(input);
+    });
+
+    if (!confirm(`Yakin ingin mengembalikan ${checkboxes.length} data terpilih?`)) return;
+    document.getElementById('bulkRestoreForm').submit();
   };
 });
 </script>

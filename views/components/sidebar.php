@@ -56,6 +56,14 @@ $currentPage = basename($_SERVER['PHP_SELF']);
               <i class="bi bi-pencil-square me-2"></i><span class="">Perhitungan dan Analisis</span>
             </a>
           </li>
+          <!-- === Arsip Gizi SECTION === -->
+          <li class="nav-item w-100 mt-3">
+            <div class="text-uppercase small fw-bold text-white px-3 mb-1">Arsip</div>
+
+            <a class="nav-link d-flex align-items-center justify-content-start <?= ($currentPage === 'arsip.php') ? 'active' : '' ?>" href="arsip.php">
+              <i class="bi bi-pencil-square me-2"></i><span class="">Arsip Perhitungan</span>
+            </a>
+          </li>
 
           <!-- === USER SECTION === -->
           <li class="nav-item w-100 mt-3">

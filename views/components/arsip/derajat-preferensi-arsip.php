@@ -3,7 +3,7 @@ $title = 'Derajat Preferensi';
 include '../koneksi.php';
 
 // --- 1. Ambil semua alternatif ---
-$alternatif_result = $koneksi->query("SELECT * FROM alternatif WHERE is_archived = 0 ORDER BY id ASC ");
+$alternatif_result = $koneksi->query("SELECT * FROM alternatif WHERE is_archived = 1 ORDER BY id ASC ");
 $alternatif = [];
 while ($row = $alternatif_result->fetch_assoc()) {
     $alternatif[$row['id']] = $row['nama'];

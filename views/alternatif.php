@@ -166,10 +166,10 @@ $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 if ($page < 1) $page = 1;
 $offset = ($page - 1) * $limit;
 
-$total_data = $koneksi->query("SELECT COUNT(*) as total FROM alternatif")->fetch_assoc()['total'];
+$total_data = $koneksi->query("SELECT COUNT(*) as total FROM alternatif WHERE is_archived=0")->fetch_assoc()['total'];
 $total_pages = ceil($total_data / $limit);
 
-$data = $koneksi->query("SELECT * FROM alternatif ORDER BY id DESC LIMIT $limit OFFSET $offset");
+$data = $koneksi->query("SELECT * FROM alternatif WHERE is_archived=0 ORDER BY id DESC LIMIT $limit OFFSET $offset");
 ?>
 
 <div class="container py-4">
