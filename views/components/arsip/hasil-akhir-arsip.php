@@ -2,6 +2,22 @@
 $title = 'Hasil Akhir';
 include '../koneksi.php';
 
+// Ambil arsip yang aktif dari session
+$id_arsip_aktif = $_SESSION['id_arsip'] ?? null;
+$arsip_info = null;
+
+// Jika ada arsip aktif, ambil nama & tanggalnya
+if ($id_arsip_aktif) {
+    $stmt = $koneksi->prepare("SELECT nama, archived_at FROM arsip WHERE id = ?");
+    $stmt->bind_param("i", $id_arsip_aktif);
+    $stmt->execute();
+    $arsip_info = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+}
+
+// Filter berdasarkan arsip aktif (kalau ada)
+$where_arsip = $id_arsip_aktif ? "AND id_arsip = $id_arsip_aktif" : "";
+
 /* ==================== BULK DELETE ==================== */
 if (isset($_POST['action']) && $_POST['action'] === 'bulk_delete' && !empty($_POST['selected_ids'])) {
     $ids = array_map('intval', $_POST['selected_ids']);
@@ -9,7 +25,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'bulk_delete' && !empty($_PO
 
     if (!empty($ids_str)) {
         $koneksi->query("DELETE FROM alternatif WHERE id IN ($ids_str)");
-        header("Location: ?tab=hasil-akhir&msg=bulk_deleted");
+        $redirect_params = "tab=hasil-akhir&msg=bulk_deleted";
+        if ($id_arsip_aktif) $redirect_params .= "&id_arsip=$id_arsip_aktif";
+        header("Location: ?$redirect_params");
         exit;
     }
 }
@@ -21,7 +39,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'bulk_restore' && !empty($_P
 
     if (!empty($ids_str)) {
         $koneksi->query("UPDATE alternatif SET is_archived = 0 WHERE id IN ($ids_str)");
-        header("Location: ?tab=hasil-akhir&msg=bulk_restored");
+        $redirect_params = "tab=hasil-akhir&msg=bulk_restored";
+        if ($id_arsip_aktif) $redirect_params .= "&id_arsip=$id_arsip_aktif";
+        header("Location: ?$redirect_params");
         exit;
     }
 }
@@ -31,16 +51,16 @@ $page_net = isset($_GET['page_net']) ? (int)$_GET['page_net'] : 1;
 if ($page_net < 1) $page_net = 1;
 $offset = ($page_net - 1) * $limit;
 
-// Ambil total alternatif
-$total_result = $koneksi->query("SELECT COUNT(*) as total FROM alternatif WHERE is_archived = 1");
+// Ambil total alternatif sesuai filter arsip
+$total_result = $koneksi->query("SELECT COUNT(*) as total FROM alternatif WHERE is_archived = 1 $where_arsip");
 if (!$total_result) {
     die("ERROR Query total: " . $koneksi->error);
 }
 $total_data = $total_result->fetch_assoc()['total'];
 $total_pages = ceil($total_data / $limit);
 
-// Ambil semua alternatif untuk perhitungan flow
-$all_alternatif_result = $koneksi->query("SELECT id FROM alternatif WHERE is_archived = 1");
+// Ambil semua alternatif untuk perhitungan flow (sesuai filter arsip)
+$all_alternatif_result = $koneksi->query("SELECT id FROM alternatif WHERE is_archived = 1 $where_arsip");
 if (!$all_alternatif_result) {
     die("ERROR Query all_alternatif: " . $koneksi->error);
 }
@@ -50,7 +70,6 @@ while ($row = $all_alternatif_result->fetch_assoc()) {
     $all_alternatif[] = $row['id'];
 }
 $total_alternatif = count($all_alternatif);
-
 
 // Hitung leaving, entering, net flow untuk semua alternatif
 $flows = [];
@@ -82,7 +101,6 @@ foreach ($all_alternatif as $id) {
         'entering' => $entering,
         'net' => $net,
     ];
-
 }
 
 // Tambahkan ranking berdasarkan net flow DESC
@@ -99,15 +117,22 @@ unset($flow);
 $sorted_ids = array_keys($flows);
 $paginated_ids = array_slice($sorted_ids, $offset, $limit);
 
-
 $data_for_display = [];
 foreach ($paginated_ids as $id) {
     // Ambil nama dari database
-    $result = $koneksi->query("SELECT id, nama,status_bb_u FROM alternatif WHERE id = $id");
+    $result = $koneksi->query("SELECT id, nama, status_bb_u FROM alternatif WHERE id = $id");
     if ($result && $result->num_rows > 0) {
         $data_for_display[] = $result->fetch_assoc();
     }
 }
+
+// Parameter untuk pagination & export (membawa id_arsip)
+$pagination_params = "tab=hasil-akhir";
+if ($id_arsip_aktif) {
+    $pagination_params .= "&id_arsip={$id_arsip_aktif}";
+}
+
+$export_params = $id_arsip_aktif ? "?id_arsip={$id_arsip_aktif}" : "";
 ?>
 
 <?php if (isset($_GET['msg'])): ?>
@@ -123,7 +148,16 @@ foreach ($paginated_ids as $id) {
 <?php endif; ?>
 
 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-    <h3 class="m-0">Net Flow (Φ) & Ranking</h3>
+    <div class="d-flex align-items-center gap-3">
+        <h3 class="m-0">Net Flow (Φ) & Ranking</h3>
+        <?php if ($arsip_info): ?>
+            <span class="badge bg-light text-success">
+                Arsip: <?= htmlspecialchars($arsip_info['nama']) ?> – <?= htmlspecialchars(date('d M Y', strtotime($arsip_info['archived_at']))) ?>
+            </span>
+        <?php else: ?>
+            <span class="badge bg-warning text-dark">Menampilkan Semua Arsip</span>
+        <?php endif; ?>
+    </div>
     <div class="mb-3 px-3">
         <button type="button" id="bulkDeleteBtn" class="btn btn-md btn-danger me-2" style="display:none;" onclick="submitBulkDelete()">
             <i class="bi bi-trash"></i> Hapus Terpilih
@@ -131,11 +165,9 @@ foreach ($paginated_ids as $id) {
         <button type="button" id="bulkRestoreBtn" class="btn btn-md btn-info me-2" style="display:none;" onclick="submitBulkRestore()">
             <i class="bi bi-arrow-counterclockwise"></i> Kembalikan Terpilih
         </button>
-        <a href="/script/export-pdf.php" class="btn btn-md btn-warning">Export PDF</a>
+        <a href="/script/export-pdf.php<?= $export_params ?>" class="btn btn-md btn-warning">Export PDF</a>
     </div>
 </div>
-
-
 
 <div class="table-responsive">
     <table class="table align-middle table-hover m-0">
@@ -155,8 +187,8 @@ foreach ($paginated_ids as $id) {
         <tbody>
             <?php if ($total_data === 0): ?>
                 <tr>
-                    <td colspan="7" class="text-center text-danger py-3">
-                        <strong>⚠️ Tidak ada data di tabel alternatif</strong>
+                    <td colspan="7" class="text-center text-muted py-3">
+                        <?= $arsip_info ? 'Tidak ada data untuk arsip ini' : 'Belum ada data di arsip manapun' ?>
                     </td>
                 </tr>
             <?php elseif (count($data_for_display) === 0): ?>
@@ -190,12 +222,18 @@ foreach ($paginated_ids as $id) {
 <!-- Hidden form untuk bulk delete -->
 <form id="bulkDeleteForm" method="POST" style="display:none;">
     <input type="hidden" name="action" value="bulk_delete">
+    <?php if ($id_arsip_aktif): ?>
+        <input type="hidden" name="id_arsip" value="<?= $id_arsip_aktif ?>">
+    <?php endif; ?>
     <div id="selectedContainerDelete"></div>
 </form>
 
 <!-- Hidden form untuk bulk restore -->
 <form id="bulkRestoreForm" method="POST" style="display:none;">
     <input type="hidden" name="action" value="bulk_restore">
+    <?php if ($id_arsip_aktif): ?>
+        <input type="hidden" name="id_arsip" value="<?= $id_arsip_aktif ?>">
+    <?php endif; ?>
     <div id="selectedContainerRestore"></div>
 </form>
 
@@ -203,7 +241,8 @@ foreach ($paginated_ids as $id) {
 <div class="d-flex justify-content-between align-items-center px-3">
     <?php
     $start = $offset + 1;
-    $end = min($offset + count($data_for_display), $total_data);    ?>
+    $end = min($offset + count($data_for_display), $total_data);
+    ?>
     <?php if ($total_data > 0): ?>
         <div class="px-3 pt-2">
             <small class="text-muted">Menampilkan <?= $start ?>–<?= $end ?> dari <?= $total_data ?> data</small>
@@ -214,15 +253,15 @@ foreach ($paginated_ids as $id) {
         <nav>
             <ul class="pagination justify-content-end my-3 px-3">
                 <li class="page-item <?= $page_net <= 1 ? 'disabled' : '' ?>">
-                    <a class="page-link" href="?tab=hasil-akhir&page_net=<?= $page_net - 1 ?>">Previous</a>
+                    <a class="page-link" href="?<?= $pagination_params ?>&page_net=<?= $page_net - 1 ?>">Previous</a>
                 </li>
                 <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                     <li class="page-item <?= $i == $page_net ? 'active' : '' ?>">
-                        <a class="page-link" href="?tab=hasil-akhir&page_net=<?= $i ?>"><?= $i ?></a>
+                        <a class="page-link" href="?<?= $pagination_params ?>&page_net=<?= $i ?>"><?= $i ?></a>
                     </li>
                 <?php endfor; ?>
                 <li class="page-item <?= $page_net >= $total_pages ? 'disabled' : '' ?>">
-                    <a class="page-link" href="?tab=hasil-akhir&page_net=<?= $page_net + 1 ?>">Next</a>
+                    <a class="page-link" href="?<?= $pagination_params ?>&page_net=<?= $page_net + 1 ?>">Next</a>
                 </li>
             </ul>
         </nav>
